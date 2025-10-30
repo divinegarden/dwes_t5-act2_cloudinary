@@ -15,10 +15,14 @@ export async function uploadFile(prevState, formData) {
   const file = formData.get('file')
   const fileBuffer = await file.arrayBuffer();
 
+  console.log(file);
+
   let mime = file.type;
   let encoding = 'base64';
   let base64Data = Buffer.from(fileBuffer).toString('base64');
   let fileUri = 'data:' + mime + ';' + encoding + ',' + base64Data;
+
+  console.log(fileUri);
 
   const uploadToCloudinary = () => {
     return new Promise((resolve, reject) => {
@@ -27,7 +31,14 @@ export async function uploadFile(prevState, formData) {
       // en este caso es recomendable usar propiedad asset_folder
       let result = cloudinary.uploader.upload(
         fileUri,
-        { asset_folder: 'galeria', public_id: path.parse(file.name).name, invalidate: true }
+        {
+          asset_folder: 'galeria',
+          // public_id: path.parse(file.name).name,
+          use_filename: true,
+          unique_filename: true,
+          invalidate: true,
+          format: 'avif'  // webp, png
+        }
       )
         .then((result) => resolve(result))
         .catch((error) => reject(error));
@@ -39,7 +50,7 @@ export async function uploadFile(prevState, formData) {
     const result = await uploadToCloudinary();
     // let imageUrl = result.secure_url;
 
-    return { success: 'Archivo subido' }
+    return { success: `Archivo ${file.name} subido` }
   } catch (error) {
     return { error: error.message }
   }
